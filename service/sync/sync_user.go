@@ -15,16 +15,14 @@ type IUserSync interface {
 	GetTargetUserByMobile(mobile string) (IUserInfo, error)
 	GetNeedSyncDeptList(sourceUserID interface{}) ([]interface{}, error)
 
-	CreateUser(user IUserInfo) (interface{}, error)
-	NeedUpdateUser(sourceUser IUserInfo, thirdUser IUserInfo) bool
-	UpdateUser(sourceUser IUserInfo, thirdUser IUserInfo) error
+	CreateUser(sourceUser IUserInfo) (interface{}, error)
+	NeedUpdateUser(sourceUser IUserInfo, targetUser IUserInfo) bool
+	UpdateUser(sourceUser IUserInfo, targetUser IUserInfo) error
 
 	DeptSyncer() IDeptSync
 
 	NeedSyncDelete() bool
-	LeaveUser(userID interface{}) error
-	IsLeaveNow(userID interface{}) bool
-	DelayLeave(userID interface{}) error
+	LeaveUser(targetUserID interface{}) error
 
 	NeedSyncLeader(source, target IDeptInfo) bool
 	SyncLeader(source, target IDeptInfo) error
@@ -120,20 +118,17 @@ func (c *UserSyncer) leaveUser(sourceUser IUserInfo) error {
 	if !c.userSyncer.NeedSyncDelete() {
 		return nil
 	}
-	thirdUser, err := c.userSyncer.GetTargetUser(targetID)
+	targetUser, err := c.userSyncer.GetTargetUser(targetID)
 	if err != nil {
 		return err
 	}
-	if !thirdUser.IsExist() || thirdUser.IsLeft() {
+	if !targetUser.IsExist() || targetUser.IsLeft() {
 		return nil
 	}
-	if c.userSyncer.IsLeaveNow(sourceUser.GetID()) {
-		if err = c.userSyncer.LeaveUser(sourceUser.GetID()); err != nil {
-			return err
-		}
-	} else {
-		c.userSyncer.DelayLeave(sourceUser.GetID())
+	if err = c.userSyncer.LeaveUser(targetUser.GetID()); err != nil {
+		return err
 	}
+
 	return nil
 }
 
@@ -156,18 +151,18 @@ func (c *UserSyncer) syncByID(sourceUser IUserInfo) error {
 		return nil
 	}
 
-	thirdUser, err := c.userSyncer.GetTargetUser(targetID)
+	targetUser, err := c.userSyncer.GetTargetUser(targetID)
 	if err != nil {
 		return err
 	}
-	if thirdUser.IsExist() {
-		if thirdUser.IsLeft() {
+	if targetUser.IsExist() {
+		if targetUser.IsLeft() {
 			return nil
 		}
-		if !c.userSyncer.NeedUpdateUser(sourceUser, thirdUser) {
+		if !c.userSyncer.NeedUpdateUser(sourceUser, targetUser) {
 			return nil
 		}
-		if err = c.userSyncer.UpdateUser(sourceUser, thirdUser); err != nil {
+		if err = c.userSyncer.UpdateUser(sourceUser, targetUser); err != nil {
 			return err
 		}
 		return nil
@@ -187,16 +182,16 @@ func (c *UserSyncer) syncByMobile(sourceUser IUserInfo) error {
 		}
 	}
 
-	thirdUser, err := c.userSyncer.GetTargetUserByMobile(sourceUser.GetMobile())
+	targetUser, err := c.userSyncer.GetTargetUserByMobile(sourceUser.GetMobile())
 	if err != nil {
 		return err
 	}
-	if thirdUser.IsExist() {
-		if thirdUser.IsLeft() {
+	if targetUser.IsExist() {
+		if targetUser.IsLeft() {
 			return nil
 		}
 
-		occupied, err := c.isIDOccupied(sourceUser, thirdUser)
+		occupied, err := c.isIDOccupied(sourceUser, targetUser)
 		if err != nil {
 			return err
 		}
@@ -204,11 +199,11 @@ func (c *UserSyncer) syncByMobile(sourceUser IUserInfo) error {
 			return IDOccupied
 		}
 
-		c.userMapping.BindUser(sourceUser.GetID(), thirdUser.GetID())
-		if !c.userSyncer.NeedUpdateUser(sourceUser, thirdUser) {
+		c.userMapping.BindUser(sourceUser.GetID(), targetUser.GetID())
+		if !c.userSyncer.NeedUpdateUser(sourceUser, targetUser) {
 			return nil
 		}
-		if err = c.userSyncer.UpdateUser(sourceUser, thirdUser); err != nil {
+		if err = c.userSyncer.UpdateUser(sourceUser, targetUser); err != nil {
 			return err
 		}
 		return nil
@@ -216,8 +211,8 @@ func (c *UserSyncer) syncByMobile(sourceUser IUserInfo) error {
 	return errNotFound
 }
 
-func (c *UserSyncer) isIDOccupied(sourceUser IUserInfo, thirdUser IUserInfo) (bool, error) {
-	sourceID, exist, err := c.userMapping.GetSourceUserID(thirdUser.GetID())
+func (c *UserSyncer) isIDOccupied(sourceUser IUserInfo, targetUser IUserInfo) (bool, error) {
+	sourceID, exist, err := c.userMapping.GetSourceUserID(targetUser.GetID())
 	if err != nil {
 		return false, err
 	}

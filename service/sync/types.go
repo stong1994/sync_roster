@@ -44,9 +44,8 @@ func ReverseForeachDeptTree(tree IDeptTree, f func(deptTree IDeptTree) error) er
 
 type IUserInfo interface {
 	GetID() interface{}
-	GetDeptID() interface{}
+	GetDeptID() []interface{}
 	GetMobile() string
-	GetName() string
 	IsLeft() bool // 是否离职
 	IsExist() bool
 }
