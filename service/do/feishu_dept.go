@@ -1,5 +1,11 @@
 package do
 
+import (
+	"sync_roster/service/sync"
+)
+
+const FeishuRootDeptID = "0"
+
 type FeishuDeptInfo struct {
 	ID          string
 	Name        string
@@ -30,8 +36,28 @@ type FeishuDeptTree struct {
 	List []*FeishuDeptTree
 }
 
+func (f FeishuDeptTree) GetChildren() []sync.IDeptTree {
+	rst := make([]sync.IDeptTree, len(f.List))
+	for i, v := range f.List {
+		rst[i] = v
+	}
+	return rst
+}
+
 type FeishuDeptMap struct {
 	data map[string]*FeishuDeptTree
+}
+
+func NewFeishuDeptMap(root *FeishuDeptTree) *FeishuDeptMap {
+	data := make(map[string]*FeishuDeptTree)
+	var dfs func(dept *FeishuDeptTree)
+	dfs = func(dept *FeishuDeptTree) {
+		data[dept.ID] = dept
+		for _, child := range dept.List {
+			dfs(child)
+		}
+	}
+	return &FeishuDeptMap{data: data}
 }
 
 func (f *FeishuDeptMap) Get(id string) *FeishuDeptTree {

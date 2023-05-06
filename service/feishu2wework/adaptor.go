@@ -8,6 +8,7 @@ import (
 type IFeishu interface {
 	GetUser(ctx context.Context, config do.FeishuConfig, id interface{}) (do.FeishuUser, error)
 	GetDept(ctx context.Context, config do.FeishuConfig, id string) (*do.FeishuDeptTree, error)
+	GetAllDeptUser(ctx context.Context, config do.FeishuConfig) (*do.FeishuDeptTree, []do.FeishuUser, error)
 }
 
 type IWework interface {
@@ -20,4 +21,5 @@ type IWework interface {
 	UpdateDept(ctx context.Context, config do.WeworkConfig, updateInfo do.WeworkDeptUpdateInfo) error
 	Delete(ctx context.Context, config do.WeworkConfig, id int) error
 	GetDept(ctx context.Context, config do.WeworkConfig, id int) (*do.WeworkDeptTree, error)
+	GetAllDeptUser(ctx context.Context, config do.WeworkConfig) (*do.WeworkDeptTree, []do.WeworkUser, error)
 }

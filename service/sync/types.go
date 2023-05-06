@@ -32,6 +32,17 @@ type IDeptTree interface {
 	GetChildren() []IDeptTree
 }
 
+func ForeachDeptTree(tree IDeptTree, f func(deptTree IDeptTree) error) error {
+	f(tree)
+	childs := tree.GetChildren()
+	for i := range childs {
+		if err := ForeachDeptTree(childs[i], f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func ReverseForeachDeptTree(tree IDeptTree, f func(deptTree IDeptTree) error) error {
 	childs := tree.GetChildren()
 	for i := range childs {

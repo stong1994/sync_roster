@@ -1,5 +1,11 @@
 package do
 
+import (
+	"sync_roster/service/sync"
+)
+
+const WeworkRootDeptID = 1
+
 type WeworkDeptInfo struct {
 	ID       int
 	Name     string
@@ -42,8 +48,28 @@ type WeworkDeptTree struct {
 	List []*WeworkDeptTree
 }
 
+func (w WeworkDeptTree) GetChildren() []sync.IDeptTree {
+	rst := make([]sync.IDeptTree, len(w.List))
+	for i, v := range w.List {
+		rst[i] = v
+	}
+	return rst
+}
+
 type WeworkDeptMap struct {
 	data map[int]*WeworkDeptTree
+}
+
+func NewWeworkDeptMap(root *WeworkDeptTree) *WeworkDeptMap {
+	data := make(map[int]*WeworkDeptTree)
+	var dfs func(dept *WeworkDeptTree)
+	dfs = func(dept *WeworkDeptTree) {
+		data[dept.ID] = dept
+		for _, child := range dept.List {
+			dfs(child)
+		}
+	}
+	return &WeworkDeptMap{data: data}
 }
 
 func (w *WeworkDeptMap) Get(id int) *WeworkDeptTree {
