@@ -11,9 +11,8 @@ type UserSyncer struct {
 	ctx           context.Context
 	sourceUserMap map[interface{}]do.FeishuUser
 	targetUserMap map[interface{}]do.WeworkUser
-	deptSyncer    sync.IDeptSync
 	userMapping   sync.UserMapping
-	deptMapping   sync.DeptMapping
+	deptSyncer    *DeptSyncer
 
 	feishuConfig  do.FeishuConfig
 	weworkConfig  do.WeworkConfig
@@ -104,7 +103,7 @@ func (u *UserSyncer) CreateUser(user sync.IUserInfo) (interface{}, error) {
 func (u *UserSyncer) getCreateUserInfo(feishuUser do.FeishuUser) (rst do.WeworkUser, err error) {
 	var weworkDetps []int
 	for _, v := range feishuUser.Department {
-		weworkDept, exist, err := u.deptMapping.GetTargetDeptID(v)
+		weworkDept, exist, err := u.deptSyncer.deptMapping.GetTargetDeptID(v)
 		if err != nil {
 			return rst, err
 		}
@@ -142,7 +141,7 @@ func (u *UserSyncer) NeedUpdateUser(sourceUser sync.IUserInfo, targetUser sync.I
 		wDepts[v] = true
 	}
 	for _, v := range fUser.Department {
-		id, exist, _ := u.deptMapping.GetTargetDeptID(v)
+		id, exist, _ := u.deptSyncer.deptMapping.GetTargetDeptID(v)
 		if !exist || !wDepts[id.(int)] {
 			return true
 		}
@@ -162,7 +161,7 @@ func (u *UserSyncer) UpdateUser(sourceUser sync.IUserInfo, targetUser sync.IUser
 		wDepts[v] = true
 	}
 	for _, v := range fUser.Department {
-		id, exist, _ := u.deptMapping.GetTargetDeptID(v)
+		id, exist, _ := u.deptSyncer.deptMapping.GetTargetDeptID(v)
 		if exist && !wDepts[id.(int)] {
 			wUser.Department = append(wUser.Department, id.(int))
 		}
