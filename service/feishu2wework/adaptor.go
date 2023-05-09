@@ -19,7 +19,7 @@ type IWework interface {
 	CrateUser(ctx context.Context, config do.WeworkConfig, user do.WeworkUser) (do.WeworkUser, error)
 	CrateDept(ctx context.Context, config do.WeworkConfig, dept do.WeworkDeptCreateInfo) (do.WeworkDeptInfo, error)
 	UpdateDept(ctx context.Context, config do.WeworkConfig, updateInfo do.WeworkDeptUpdateInfo) error
-	Delete(ctx context.Context, config do.WeworkConfig, id int) error
+	DeleteDept(ctx context.Context, config do.WeworkConfig, id int) error
 	GetDept(ctx context.Context, config do.WeworkConfig, id int) (*do.WeworkDeptTree, error)
 	GetAllDeptUser(ctx context.Context, config do.WeworkConfig) (*do.WeworkDeptTree, []do.WeworkUser, error)
 }

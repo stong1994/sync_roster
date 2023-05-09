@@ -124,7 +124,7 @@ func (d *DeptSyncer) UpdateDept(targetDept sync.IDeptInfo, sourceDept sync.IDept
 }
 
 func (d *DeptSyncer) DeleteDept(target interface{}) error {
-	if err := d.weworkAdaptor.Delete(d.ctx, d.weworkConfig, target.(int)); err != nil {
+	if err := d.weworkAdaptor.DeleteDept(d.ctx, d.weworkConfig, target.(int)); err != nil {
 		return err
 	}
 	d.targetDeptMap.Delete(target.(int))
